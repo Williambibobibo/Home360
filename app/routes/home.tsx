@@ -1,6 +1,7 @@
 import type { Route } from "./+types/home";
 import Navbar from "~/components/Navbar";
 import {ArrowUpRight, Clock} from "lucide-react";
+import Upload from "~/components/Upload";
 
 
 export function meta({}: Route.MetaArgs) {
@@ -60,7 +61,11 @@ export default function Home() {
                         </p>
                     </div>
 
-                    <p>Upload images</p>
+                    <Upload onComplete={(base64Data) => {
+                            console.log("Upload complete:", base64Data);
+
+                            // Handle redirection or next steps here
+                    }} />
                 </div>
             </section>
 
