@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import { useOutletContext } from "react-router";
 import {
     Upload as UploadIcon,
@@ -21,7 +21,17 @@ const Upload = ({ onComplete }: UploadProps) => {
     const [isDragging, setIsDragging] = useState(false);
     const [progress, setProgress] = useState(0);
 
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const { isSignedIn } = useOutletContext<any>();
+
+    useEffect(() => {
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
 
     const processFile = useCallback(
         (file: File) => {
@@ -30,19 +40,22 @@ const Upload = ({ onComplete }: UploadProps) => {
             setFile(file);
             setProgress(0);
 
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
             const reader = new FileReader();
 
             reader.onloadend = () => {
                 const base64Data = reader.result as string;
 
-                const interval = setInterval(() => {
+                intervalRef.current = setInterval(() => {
                     setProgress((prev) => {
                         const next = prev + PROGRESS_INCREMENT;
 
                         if (next >= 100) {
-                            clearInterval(interval);
+                            if (intervalRef.current) clearInterval(intervalRef.current);
 
-                            setTimeout(() => {
+                            timeoutRef.current = setTimeout(() => {
                                 onComplete?.(base64Data);
                             }, REDIRECT_DELAY_MS);
 
